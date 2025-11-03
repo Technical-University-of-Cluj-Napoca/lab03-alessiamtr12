@@ -60,16 +60,28 @@ if __name__ == "__main__":
                     end = None
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and not started:
+                if (event.key == pygame.K_1 or event.key == pygame.K_2 or event.key == pygame.K_3 or event.key == pygame.K_4) and not started:
                     # run the algorithm
                     for row in grid.grid:
                         for spot in row:
                             spot.update_neighbors(grid.grid)
                     # here you can call the algorithms
-                    # bfs(lambda: grid.draw(), grid, start, end)
+                    #bfs(lambda: grid.draw(), grid, start, end)
                     # dfs(lambda: grid.draw(), grid, start, end)
                     # astar(lambda: grid.draw(), grid, start, end)
                     # ... and the others?
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_1:
+                            dfs(lambda: grid.draw(), grid, start, end)
+                        else:
+                            if event.key == pygame.K_2:
+                                bfs(lambda: grid.draw(), grid, start, end)
+                            else:
+                                if event.key == pygame.K_3:
+                                    astar(lambda: grid.draw(), grid, start, end, h_manhattan_distance)
+                                else:
+                                    if event.key == pygame.K_4:
+                                        astar(lambda: grid.draw(), grid, start, end, h_euclidian_distance)
                     started = False
 
                 if event.key == pygame.K_c:
