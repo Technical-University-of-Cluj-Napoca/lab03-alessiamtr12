@@ -81,7 +81,11 @@ if __name__ == "__main__":
                                     astar(lambda: grid.draw(), grid, start, end, h_manhattan_distance)
                                 else:
                                     if event.key == pygame.K_4:
-                                        astar(lambda: grid.draw(), grid, start, end, h_euclidian_distance)
+                                        #astar(lambda: grid.draw(), grid, start, end, h_euclidian_distance)
+                                        #dls(lambda: grid.draw(), start, end, 20)
+                                        #ids(lambda: grid.draw(), start, end)
+                                        ucs(lambda: grid.draw(), grid, start, end)
+
                     started = False
 
                 if event.key == pygame.K_c:

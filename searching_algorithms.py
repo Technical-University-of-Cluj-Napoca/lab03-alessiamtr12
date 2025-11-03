@@ -159,6 +159,78 @@ def astar(draw: callable, grid: Grid, start: Spot, end: Spot, h: callable) -> bo
 
     return False
 
+def dls(draw: callable, start: Spot, end: Spot, limit: int) -> bool:
+    if start is None or end is None:
+        return False
+    stack = [(start, 0)]
+    visited = {start : 0}
+    came_from = {}
+    while stack:
+        current, depth = stack.pop()
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        if depth < limit:
+
+            for neighbor in current.neighbors:
+                new_depth = depth + 1
+                if neighbor not in visited or new_depth < visited[neighbor]:
+                    stack.append((neighbor, new_depth))
+                    visited[neighbor] = new_depth
+                    came_from[neighbor] = current
+                    neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+    return False
+
+def ids(draw: callable, start: Spot, end: Spot) -> bool:
+    if start is None or end is None:
+        return False
+    limit = 0
+    while(dls(draw, start, end, limit) == False):
+        limit += 1
+
+def ucs(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+    if start is None or end is None:
+        return False
+    pq = PriorityQueue()
+    pq.put((0, start))
+    cost = {spot: float("inf") for row in grid.grid for spot in row}
+    cost[start] = 0
+    came_from = {}
+    visited = {start}
+    while not pq.empty():
+        distance, current = pq.get()
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        for neighbor in current.neighbors:
+            new_distance = cost[current] + 1
+            if new_distance < cost[neighbor]:
+                cost[neighbor] = new_distance
+                came_from[neighbor] = current
+
+            if neighbor not in visited:
+                visited.add(neighbor)
+                neighbor.make_open()
+                pq.put((cost[neighbor], neighbor))
+        draw()
+        if current != start:
+            current.make_closed()
+    return False
+
+
 # and the others algorithms...
 # ▢ Depth-Limited Search (DLS)
 # ▢ Uninformed Cost Search (UCS)
