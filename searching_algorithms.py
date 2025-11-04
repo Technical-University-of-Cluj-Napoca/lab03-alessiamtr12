@@ -231,6 +231,91 @@ def ucs(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
     return False
 
 
+def dijkstra(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+    if start is None or end is None:
+        return False
+    pq = PriorityQueue()
+    pq.put((0, start))
+    cost = {spot: float("inf") for row in grid.grid for spot in row}
+    cost[start] = 0
+    came_from = {}
+    visited = {start}
+    while not pq.empty():
+        distance, current = pq.get()
+        ## dijkstra computes shortest distances from the source to all the nodes
+        ## dont stop when goal was reached
+        ## reconstruct path after pq is empty(all nodes were processed)
+
+        # if current == end:
+        #     while current in came_from:
+        #         current = came_from[current]
+        #         current.make_path()
+        #         draw()
+        #     end.make_end()
+        #     start.make_start()
+        #     return True
+        for neighbor in current.neighbors:
+            new_distance = cost[current] + 1
+            if new_distance < cost[neighbor]:
+                cost[neighbor] = new_distance
+                came_from[neighbor] = current
+
+            if neighbor not in visited:
+                visited.add(neighbor)
+                neighbor.make_open()
+                pq.put((cost[neighbor], neighbor))
+        draw()
+        if current != start:
+            current.make_closed()
+
+    if cost[end] == float("inf"):
+        return False
+    current = end
+    while current in came_from:
+        current = came_from[current]
+        current.make_path()
+        draw()
+
+    end.make_end()
+    start.make_start()
+    return True
+
+
+def greedy_best_first_search(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+
+    ## like a* but f = h, greedy on heuristics
+    count = 0
+    open_heap = []
+    h_score = {spot: float("inf") for row in grid.grid for spot in row}
+    h_start = h_manhattan_distance(start.get_position(), end.get_position())
+    heapq.heappush(open_heap, (h_start, count, start))
+    came_from = {}
+    visited = {start}
+    h_score[start] = h_start
+    while open_heap:
+        current = heapq.heappop(open_heap)[2]
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        for neighbor in current.neighbors:
+                if neighbor not in visited:
+                    came_from[neighbor] = current
+                    h_score[neighbor] = h_manhattan_distance(neighbor.get_position(), end.get_position())
+                    count += 1
+                    heapq.heappush(open_heap, (h_score[neighbor], count, neighbor))
+                    visited.add(neighbor)
+                    neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+
+    return False
+
 # and the others algorithms...
 # ▢ Depth-Limited Search (DLS)
 # ▢ Uninformed Cost Search (UCS)
