@@ -1,6 +1,9 @@
 import heapq
 import math
 
+from pygame.transform import threshold
+
+import grid
 from utils import *
 from collections import deque
 from queue import PriorityQueue
@@ -315,6 +318,63 @@ def greedy_best_first_search(draw: callable, grid: Grid, start: Spot, end: Spot)
             current.make_closed()
 
     return False
+
+
+def ida(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+
+    threshold = h_manhattan_distance(start.get_position(), end.get_position())
+    came_from = {}
+
+    def search(current: Spot, g_score: int, path: list):
+
+        f_score = g_score + h_manhattan_distance(current.get_position(), end.get_position())
+        if f_score > threshold:
+            return f_score
+        if current == end:
+            return "found"
+        min_pruned_subtree = float('inf')
+        for neighbor in current.neighbors:
+            if neighbor not in path:
+                came_from[neighbor] = current
+                path.append(neighbor)
+                if neighbor != end:
+                    neighbor.make_open()
+                result = search(neighbor, g_score + 1, path)
+                if result == "found":
+                    return "found"
+                min_pruned_subtree = min(min_pruned_subtree, result)
+
+                path.pop()
+        draw()
+        if current != start:
+            current.make_closed()
+        return min_pruned_subtree
+
+    while True:
+        for row in grid.grid:
+            for spot in row:
+                if spot.is_open() or spot.is_closed():
+                    spot.reset()
+        start.make_start()
+        end.make_end()
+        draw()
+        came_from = {}
+        result = search(start, 0, [start])
+        if result == "found":
+            aux = end
+            while aux in came_from:
+                aux = came_from[aux]
+                if aux != start:
+                    aux.make_path()
+                draw()
+            end.make_closed()
+            start.make_start()
+            return True
+
+        if result == float('inf'):
+            return False
+        threshold = result
+
 
 # and the others algorithms...
 # ▢ Depth-Limited Search (DLS)

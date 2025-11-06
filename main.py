@@ -86,7 +86,8 @@ if __name__ == "__main__":
                                         #ids(lambda: grid.draw(), start, end)
                                         #ucs(lambda: grid.draw(), grid, start, end)
                                         #dijkstra(lambda: grid.draw(), grid, start, end)
-                                        greedy_best_first_search(lambda: grid.draw(), grid, start, end)
+                                        #greedy_best_first_search(lambda: grid.draw(), grid, start, end)
+                                        ida(lambda: grid.draw(), grid, start, end)
 
                     started = False
 
