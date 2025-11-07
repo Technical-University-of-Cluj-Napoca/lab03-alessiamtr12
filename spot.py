@@ -113,7 +113,7 @@ class Spot:
         Returns:
             None
         """
-        self.color = COLORS['ORANGE']
+        self.color = COLORS['BLUE']
 
     def make_end(self) -> None:
         """
