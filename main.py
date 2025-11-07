@@ -29,6 +29,9 @@ if __name__ == "__main__":
     # set a caption for the window
     pygame.display.set_caption("Path Visualizing Algorithm")
 
+    success_sound = pygame.mixer.Sound("sounds/success.mp3")
+    failure_sound = pygame.mixer.Sound("sounds/failure.mp3")
+
     ROWS = 50  # number of rows
     COLS = 50  # number of columns
     grid = Grid(WIN, ROWS, COLS, WIDTH, HEIGHT)
@@ -183,52 +186,92 @@ if __name__ == "__main__":
 
                         if buttons[0].handle_event(event):  # BFS
                             started = True
-                            bfs(run_lambda, grid, start, end)
+                            found = bfs(run_lambda, grid, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[1].handle_event(event):  # DFS
                             started = True
-                            dfs(run_lambda, grid, start, end)
+                            found = dfs(run_lambda, grid, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[2].handle_event(event):  # A* manh
                             started = True
-                            astar(run_lambda, grid, start, end, h_manhattan_distance)
+                            found = astar(run_lambda, grid, start, end, h_manhattan_distance)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[3].handle_event(event):  # A* euclid
                             started = True
-                            astar(run_lambda, grid, start, end, h_euclidian_distance)
+                            found = astar(run_lambda, grid, start, end, h_euclidian_distance)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[4].handle_event(event):  # UCS
                             started = True
-                            ucs(run_lambda, grid, start, end)
+                            found = ucs(run_lambda, grid, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[5].handle_event(event):  # DLS
                             started = True
-                            dls(run_lambda, start, end, 30)
+                            found = dls(run_lambda, start, end, 30)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[6].handle_event(event):  # IDS
                             started = True
-                            ids(run_lambda, start, end)
+                            found = ids(run_lambda, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[7].handle_event(event):  # Dijkstra
                             started = True
-                            dijkstra(run_lambda, grid, start, end)
+                            found = dijkstra(run_lambda, grid, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[8].handle_event(event):  # Greedy best fisrt search
                             started = True
-                            greedy_best_first_search(run_lambda, grid, start, end)
+                            found = greedy_best_first_search(run_lambda, grid, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
                         elif buttons[9].handle_event(event):  # IDA
                             started = True
-                            ida(run_lambda, grid, start, end)
+                            found = ida(run_lambda, grid, start, end)
+                            if found is True:
+                                success_sound.play()
+                            else:
+                                failure_sound.play()
                             started = False
 
         if not started:
