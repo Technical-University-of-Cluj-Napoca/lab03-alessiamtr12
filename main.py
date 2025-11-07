@@ -231,4 +231,25 @@ if __name__ == "__main__":
                             ida(run_lambda, grid, start, end)
                             started = False
 
+        if not started:
+            buttons_pressed = pygame.mouse.get_pressed()
+            pos = pygame.mouse.get_pos()
+
+            #click inside grid
+            if pos[0] < WIDTH:
+                row, col = grid.get_clicked_pos(pos)
+
+                if 0 <= row < ROWS and 0 <= col < COLS:
+                    spot = grid.grid[row][col]
+
+                    if buttons_pressed[0]:  # LEFT mouse button is HELD
+                        if spot != start and spot != end:
+                            spot.make_barrier()
+
+                    elif buttons_pressed[2]:  # RIGHT mouse button is HELD
+                        spot.reset()
+                        if spot == start:
+                            start = None
+                        elif spot == end:
+                            end = None
     pygame.quit()
