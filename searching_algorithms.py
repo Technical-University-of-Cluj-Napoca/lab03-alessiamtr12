@@ -1,3 +1,9 @@
+import heapq
+import math
+
+from pygame.transform import threshold
+
+import grid
 from utils import *
 from collections import deque
 from queue import PriorityQueue
@@ -15,7 +21,33 @@ def bfs(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
     Returns:
         bool: True if a path is found, False otherwise.
     """
-    pass
+    if start is None or end is None:
+        return False
+    queue = deque()
+    queue.append(start)
+    visited = {start}
+    came_from = {}
+    while queue:
+        current = queue.popleft()
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+
+        for neighbor in current.neighbors:
+            if neighbor not in visited:
+                queue.append(neighbor)
+                visited.add(neighbor)
+                came_from[neighbor] = current
+                neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+    return False
 
 def dfs(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
     """
@@ -28,7 +60,31 @@ def dfs(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
     Returns:
         bool: True if a path is found, False otherwise.
     """
-    pass
+    if start is None or end is None:
+        return False
+    stack = [start]
+    visited = {start}
+    came_from = {}
+    while stack:
+        current = stack.pop()
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        for neighbor in current.neighbors:
+            if neighbor not in visited:
+                stack.append(neighbor)
+                visited.add(neighbor)
+                came_from[neighbor] = current
+                neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+    return False
 
 def h_manhattan_distance(p1: tuple[int, int], p2: tuple[int, int]) -> float:
     """
@@ -39,7 +95,7 @@ def h_manhattan_distance(p1: tuple[int, int], p2: tuple[int, int]) -> float:
     Returns:
         float: The Manhattan distance between p1 and p2.
     """
-    pass
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
 def h_euclidian_distance(p1: tuple[int, int], p2: tuple[int, int]) -> float:
     """
@@ -50,10 +106,10 @@ def h_euclidian_distance(p1: tuple[int, int], p2: tuple[int, int]) -> float:
     Returns:
         float: The Manhattan distance between p1 and p2.
     """
-    pass
+    return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
 
 
-def astar(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+def astar(draw: callable, grid: Grid, start: Spot, end: Spot, h: callable) -> bool:
     """
     A* Pathfinding Algorithm.
     Args:
@@ -64,7 +120,261 @@ def astar(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
     Returns:
         bool: True if a path is found, False otherwise.
     """
-    pass
+
+
+
+
+    count = 0
+    open_heap = []
+    f_start = h(start.get_position(), end.get_position())
+    heapq.heappush(open_heap, (f_start, count, start))
+    came_from = {}
+    g_score = {spot: float("inf") for row in grid.grid for spot in row}
+    g_score[start] = 0
+    f_score = {spot: float("inf") for row in grid.grid for spot in row}
+    f_score[start] = h(start.get_position(), end.get_position())
+    open_set = {start}
+    while open_heap:
+        current = heapq.heappop(open_heap)[2]
+        open_set.remove(current)
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        for neighbor in current.neighbors:
+            tentative_g = g_score[current] + 1
+            if tentative_g < g_score[neighbor]:
+                g_score[neighbor] = tentative_g
+                came_from[neighbor] = current
+                f_score[neighbor] = tentative_g + h(neighbor.get_position(), end.get_position())
+                if neighbor not in open_set:
+                    count += 1
+                    heapq.heappush(open_heap, (f_score[neighbor], count, neighbor))
+                    open_set.add(neighbor)
+                    neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+
+    return False
+
+def dls(draw: callable, start: Spot, end: Spot, limit: int) -> bool:
+    if start is None or end is None:
+        return False
+    stack = [(start, 0)]
+    visited = {start : 0}
+    came_from = {}
+    while stack:
+        current, depth = stack.pop()
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        if depth < limit:
+
+            for neighbor in current.neighbors:
+                new_depth = depth + 1
+                if neighbor not in visited or new_depth < visited[neighbor]:
+                    stack.append((neighbor, new_depth))
+                    visited[neighbor] = new_depth
+                    came_from[neighbor] = current
+                    neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+    return False
+
+def ids(draw: callable, start: Spot, end: Spot) -> bool:
+    if start is None or end is None:
+        return False
+    limit = 0
+    while(dls(draw, start, end, limit) == False):
+        limit += 1
+
+def ucs(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+    if start is None or end is None:
+        return False
+    pq = PriorityQueue()
+    pq.put((0, start))
+    cost = {spot: float("inf") for row in grid.grid for spot in row}
+    cost[start] = 0
+    came_from = {}
+    visited = {start}
+    while not pq.empty():
+        distance, current = pq.get()
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        for neighbor in current.neighbors:
+            new_distance = cost[current] + 1
+            if new_distance < cost[neighbor]:
+                cost[neighbor] = new_distance
+                came_from[neighbor] = current
+
+            if neighbor not in visited:
+                visited.add(neighbor)
+                neighbor.make_open()
+                pq.put((cost[neighbor], neighbor))
+        draw()
+        if current != start:
+            current.make_closed()
+    return False
+
+
+def dijkstra(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+    if start is None or end is None:
+        return False
+    pq = PriorityQueue()
+    pq.put((0, start))
+    cost = {spot: float("inf") for row in grid.grid for spot in row}
+    cost[start] = 0
+    came_from = {}
+    visited = {start}
+    while not pq.empty():
+        distance, current = pq.get()
+        ## dijkstra computes shortest distances from the source to all the nodes
+        ## dont stop when goal was reached
+        ## reconstruct path after pq is empty(all nodes were processed)
+
+        # if current == end:
+        #     while current in came_from:
+        #         current = came_from[current]
+        #         current.make_path()
+        #         draw()
+        #     end.make_end()
+        #     start.make_start()
+        #     return True
+        for neighbor in current.neighbors:
+            new_distance = cost[current] + 1
+            if new_distance < cost[neighbor]:
+                cost[neighbor] = new_distance
+                came_from[neighbor] = current
+
+            if neighbor not in visited:
+                visited.add(neighbor)
+                neighbor.make_open()
+                pq.put((cost[neighbor], neighbor))
+        draw()
+        if current != start:
+            current.make_closed()
+
+    if cost[end] == float("inf"):
+        return False
+    current = end
+    while current in came_from:
+        current = came_from[current]
+        current.make_path()
+        draw()
+
+    end.make_end()
+    start.make_start()
+    return True
+
+
+def greedy_best_first_search(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+
+    ## like a* but f = h, greedy on heuristics
+    count = 0
+    open_heap = []
+    h_score = {spot: float("inf") for row in grid.grid for spot in row}
+    h_start = h_manhattan_distance(start.get_position(), end.get_position())
+    heapq.heappush(open_heap, (h_start, count, start))
+    came_from = {}
+    visited = {start}
+    h_score[start] = h_start
+    while open_heap:
+        current = heapq.heappop(open_heap)[2]
+        if current == end:
+            while current in came_from:
+                current = came_from[current]
+                current.make_path()
+                draw()
+            end.make_end()
+            start.make_start()
+            return True
+        for neighbor in current.neighbors:
+                if neighbor not in visited:
+                    came_from[neighbor] = current
+                    h_score[neighbor] = h_manhattan_distance(neighbor.get_position(), end.get_position())
+                    count += 1
+                    heapq.heappush(open_heap, (h_score[neighbor], count, neighbor))
+                    visited.add(neighbor)
+                    neighbor.make_open()
+        draw()
+        if current != start:
+            current.make_closed()
+
+    return False
+
+
+def ida(draw: callable, grid: Grid, start: Spot, end: Spot) -> bool:
+
+    threshold = h_manhattan_distance(start.get_position(), end.get_position())
+    came_from = {}
+
+    def search(current: Spot, g_score: int, path: list):
+
+        f_score = g_score + h_manhattan_distance(current.get_position(), end.get_position())
+        if f_score > threshold:
+            return f_score
+        if current == end:
+            return "found"
+        min_pruned_subtree = float('inf')
+        for neighbor in current.neighbors:
+            if neighbor not in path:
+                came_from[neighbor] = current
+                path.append(neighbor)
+                if neighbor != end:
+                    neighbor.make_open()
+                result = search(neighbor, g_score + 1, path)
+                if result == "found":
+                    return "found"
+                min_pruned_subtree = min(min_pruned_subtree, result)
+
+                path.pop()
+        draw()
+        if current != start:
+            current.make_closed()
+        return min_pruned_subtree
+
+    while True:
+        for row in grid.grid:
+            for spot in row:
+                if spot.is_open() or spot.is_closed():
+                    spot.reset()
+        start.make_start()
+        end.make_end()
+        draw()
+        came_from = {}
+        result = search(start, 0, [start])
+        if result == "found":
+            aux = end
+            while aux in came_from:
+                aux = came_from[aux]
+                if aux != start:
+                    aux.make_path()
+                draw()
+            end.make_closed()
+            start.make_start()
+            return True
+
+        if result == float('inf'):
+            return False
+        threshold = result
+
 
 # and the others algorithms...
 # ▢ Depth-Limited Search (DLS)
